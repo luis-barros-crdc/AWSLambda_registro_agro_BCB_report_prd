@@ -1,0 +1,11 @@
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "aws-lambda-bcb-report-prd"
+s3_bucket = "crdc-prd-sam-deployments"
+s3_prefix = "bcb-report"
+region = "sa-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = ""
+image_repositories = []
