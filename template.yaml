@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Lambda function for BCB agricultural registry reports
+
+Globals:
+  Function:
+    Timeout: 900
+    MemorySize: 512
+    Runtime: nodejs18.x
+
+Resources:
+  BCBReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Timeout: 900
+      MemorySize: 512
+      Environment:
+        Variables:
+          NODE_ENV: production
+      Events:
+        ScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 6 * * ? *)
+            Description: Daily execution at 6h UTC
+            Enabled: true
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: 
+                - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:prd/secret_db/n_aplicacao*'
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+              Resource: 
+                - 'arn:aws:s3:::crdc-prd-registro-report/*'
+
+Outputs:
+  BCBReportFunction:
+    Description: "BCB Report Lambda Function ARN"
+    Value: !GetAtt BCBReportFunction.Arn
+  BCBReportFunctionIamRole:
+    Description: "Implicit IAM Role created for BCB Report function"
+    Value: !GetAtt BCBReportFunctionRole.Arn
